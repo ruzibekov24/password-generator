@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Kuchli Parol Generator | ruzibekov24</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light">
+    <div class="bg-text">ruzibekov24</div>
+    <div class="theme-toggle">
+        <button id="themeBtn">🌙 Dark Mode</button>
+    </div>
+    <div class="generator-card">
+        <h1 class="title">Parol Generator</h1>
+        <div class="output-group">
+            <input type="text" id="password" readonly placeholder="Parol bu yerda chiqadi">
+            <button id="copyBtn" title="Nusxa olish">📋</button>
+        </div>
+
+        <div class="controls">
+            <label>Uzunlik: <span id="lengthValue">12</span></label>
+            <input type="range" id="length" min="6" max="32" value="12">
+            <label><input type="checkbox" id="upper" checked> Katta harflar (A-Z)</label>
+            <label><input type="checkbox" id="lower" checked> Kichik harflar (a-z)</label>
+            <label><input type="checkbox" id="numbers" checked> Raqamlar (0-9)</label>
+            <label><input type="checkbox" id="symbols" checked> Belgilar (!@#$...)</label>
+        </div>
+
+        <button id="generateBtn">Parol yaratish</button>
+    </div>
+
+    <script>
+    // Theme toggle
+    const themeBtn = document.getElementById('themeBtn');
+    const body = document.body;
+    themeBtn.onclick = function() {
+        if (body.classList.contains('light')) {
+            body.classList.remove('light');
+            body.classList.add('dark');
+            themeBtn.textContent = '🌞 Light Mode';
+        } else {
+            body.classList.remove('dark');
+            body.classList.add('light');
+            themeBtn.textContent = '🌙 Dark Mode';
+        }
+    };
+
+    // Password generator logic
+    const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lower = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*()_+-=[]{},.<>/?|";
+
+    function generatePassword(len, useUpper, useLower, useNum, useSym) {
+        let chars = "";
+        if (useUpper) chars += upper;
+        if (useLower) chars += lower;
+        if (useNum) chars += numbers;
+        if (useSym) chars += symbols;
+        if (!chars) return "";
+
+        let password = "";
+        for (let i = 0; i < len; i++) {
+            password += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return password;
+    }
+
+    // DOM selectors
+    const lengthInput = document.getElementById('length');
+    const lengthValue = document.getElementById('lengthValue');
+    const upperInput = document.getElementById('upper');
+    const lowerInput = document.getElementById('lower');
+    const numInput = document.getElementById('numbers');
+    const symInput = document.getElementById('symbols');
+    const generateBtn = document.getElementById('generateBtn');
+    const passwordInput = document.getElementById('password');
+    const copyBtn = document.getElementById('copyBtn');
+
+    lengthInput.oninput = function() {
+        lengthValue.textContent = lengthInput.value;
+    };
+
+    generateBtn.onclick = function() {
+        const len = parseInt(lengthInput.value);
+        const pass = generatePassword(
+            len,
+            upperInput.checked,
+            lowerInput.checked,
+            numInput.checked,
+            symInput.checked
+        );
+        passwordInput.value = pass;
+    };
+
+    copyBtn.onclick = function() {
+        passwordInput.select();
+        document.execCommand("copy");
+        copyBtn.textContent = "✅";
+        setTimeout(() => copyBtn.textContent = "📋", 1000);
+    };
+    </script>
+</body>
+</html>
