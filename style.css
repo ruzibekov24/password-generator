@@ -1,97 +1,161 @@
-:root{
-  --bg: #f6f9fc;
-  --card: #fff;
-  --text: #0b1220;
-  --muted: #6b7280;
-  --primary: #3b82f6;
-  --success: #10b981;
-  --danger: #ef4444;
-  --glass: rgba(255,255,255,0.6);
-  --radius: 12px;
-  --shadow: 0 10px 30px rgba(2,6,23,0.08);
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+/* style.css — Minimal, clean, modern design */
+
+:root {
+  --bg-light: #f5f5f5;
+  --text-light: #222;
+  --card-light: #fff;
+  --accent: #007bff;
+  --accent-green: #28a745;
+
+  --bg-dark: #121212;
+  --text-dark: #f1f1f1;
+  --card-dark: #1e1e1e;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: var(--bg-light);
+  color: var(--text-light);
+  transition: background 0.4s, color 0.4s;
+}
+
+.container {
+  background: var(--card-light);
+  border-radius: 12px;
+  padding: 25px;
+  width: 340px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: background 0.4s, box-shadow 0.4s;
+}
+
+h1 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+.password-box {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+#password {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px 0 0 6px;
   font-size: 15px;
+  outline: none;
 }
 
-/* FULL BLACK dark theme (truly black backgrounds) */
-[data-theme="dark"] {
-  --bg: #000000;
-  --card: #000000;
-  --text: #e6eef8;
-  --muted: #9fb3c8;
-  --glass: rgba(255,255,255,0.02);
-  --shadow: 0 10px 30px rgba(0,0,0,0.9);
+#copyBtn {
+  padding: 8px 12px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
-/* Layout */
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:28px;
-  transition: background .3s, color .3s;
+#copyBtn:hover {
+  background: #0056b3;
 }
 
-.wrap{width:100%;max-width:920px}
-
-/* header */
-.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.top h1{margin:0;font-size:1.4rem}
-.top-controls button{background:transparent;border:0;font-size:1.1rem;cursor:pointer;color:var(--text)}
-
-/* card */
-.card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:18px;
-  box-shadow:var(--shadow);
-  border:1px solid rgba(255,255,255,0.03);
-  margin-bottom:14px;
+.settings {
+  text-align: left;
+  margin-top: 10px;
 }
 
-/* rows */
-.row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-
-.btn{
-  padding:8px 12px;border-radius:10px;border:0;cursor:pointer;background:transparent;color:var(--text);
-  box-shadow:none;font-weight:600;
+.settings label {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
 }
-.btn.primary{background:var(--primary);color:#fff}
-.btn:hover{opacity:0.92}
 
-/* output */
-.output{display:flex;gap:12px;align-items:center}
-#passwordOutput{
-  flex:1;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);
-  background:var(--glass);font-family:ui-monospace, Menlo, Monaco, "Roboto Mono", monospace;
-  color:var(--text);
+#length {
+  width: 100%;
+  cursor: pointer;
 }
-.strength{min-width:110px;padding:10px;border-radius:10px;text-align:center;font-weight:700;color:#fff;background:transparent}
 
-/* saved list */
-.saved-list{max-height:180px;overflow:auto;padding:8px;border-radius:8px;border:1px dashed rgba(0,0,0,0.05);background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
-.saved-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;margin-bottom:6px;background:rgba(0,0,0,0.02)}
-.saved-item .meta{display:flex;gap:8px;align-items:center}
-.small-btn{padding:6px 8px;border-radius:8px;border:0;cursor:pointer}
+#generate {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: var(--accent-green);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-size: 15px;
+  transition: background 0.3s;
+}
 
-/* analyze */
-.analyze-row{display:flex;gap:8px;margin-bottom:10px}
-#analyzeInput{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:var(--glass);color:var(--text)}
-.analysis{padding:10px;border-radius:8px;background:rgba(0,0,0,0.02);min-height:48px;color:var(--muted)}
+#generate:hover {
+  background: #1d8b3d;
+}
 
-/* footer */
-.footer{text-align:center;color:var(--muted);margin-top:6px;font-size:13px}
+.strength {
+  margin-top: 15px;
+  text-align: left;
+}
 
-/* responsive */
-@media (max-width:720px){
-  .grid{grid-template-columns:1fr}
-  .actions{justify-content:flex-start}
-  .saved-item{flex-direction:column;align-items:flex-start}
+.strength-bar {
+  width: 100%;
+  height: 6px;
+  background: #ccc;
+  border-radius: 3px;
+  margin-top: 5px;
+  transition: background 0.3s, width 0.3s;
+}
+
+#themeToggle {
+  margin-top: 18px;
+  background: #222;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#themeToggle:hover {
+  background: #000;
+}
+
+/* Dark mode */
+body.dark {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+body.dark .container {
+  background: var(--card-dark);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+body.dark #password {
+  background: #222;
+  border: 1px solid #333;
+  color: white;
+}
+
+body.dark #copyBtn {
+  background: #0d6efd;
+}
+
+body.dark #generate {
+  background: #198754;
+}
+
+body.dark #themeToggle {
+  background: #444;
 }
