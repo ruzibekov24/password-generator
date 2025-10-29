@@ -1,65 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Password Generator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Parol Generator — Ruzibekov</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      transition: background 0.6s, color 0.6s;
-    }
-    .sparkle {
-      position: fixed;
-      width: 6px;
-      height: 6px;
-      background: gold;
-      border-radius: 50%;
-      pointer-events: none;
-      animation: sparkle 0.8s ease-out forwards;
-    }
-    @keyframes sparkle {
-      from { transform: scale(1); opacity: 1; }
-      to { transform: scale(2); opacity: 0; }
-    }
-  </style>
 </head>
-<body>
-  <div class="container">
-    <h1>Password Generator ✨</h1>
-    <div class="password-box">
-      <input type="text" id="password" readonly>
-      <button id="copyBtn">📋</button>
-    </div>
-    <div class="settings">
-      <label>Length: <span id="lengthValue">12</span></label>
-      <input type="range" id="length" min="4" max="32" value="12">
-      <div class="checkboxes">
-        <label><input type="checkbox" id="lowercase" checked> Lowercase</label>
-        <label><input type="checkbox" id="uppercase" checked> Uppercase</label>
-        <label><input type="checkbox" id="numbers" checked> Numbers</label>
-        <label><input type="checkbox" id="symbols"> Symbols</label>
+<body data-theme="light">
+  <main class="wrap">
+    <header class="top">
+      <h1>Parol generatori</h1>
+      <div class="top-controls">
+        <button id="themeToggle" aria-pressed="false" title="Dark / Light">🌙</button>
       </div>
-      <button id="generate">Generate</button>
-    </div>
-    <div class="strength">
-      <span id="strengthLabel">Strength: Weak</span>
-      <div class="strength-bar" id="strengthBar"></div>
-    </div>
-    <button id="themeToggle">🌙 Dark Mode</button>
-  </div>
+    </header>
 
-  <script>
-    // Sparkle effect
-    document.addEventListener('mousemove', e => {
-      const sparkle = document.createElement('div');
-      sparkle.className = 'sparkle';
-      sparkle.style.left = e.pageX + 'px';
-      sparkle.style.top = e.pageY + 'px';
-      document.body.appendChild(sparkle);
-      setTimeout(() => sparkle.remove(), 800);
-    });
-  </script>
+    <section class="card">
+      <div class="row">
+        <label for="length">Uzunlik: <strong id="lengthValue">16</strong></label>
+        <input id="length" type="range" min="4" max="128" value="16" />
+      </div>
+
+      <div class="grid">
+        <label><input id="upper" type="checkbox" checked /> Katta harflar (A-Z)</label>
+        <label><input id="lower" type="checkbox" checked /> Kichik harflar (a-z)</label>
+        <label><input id="numbers" type="checkbox" checked /> Raqamlar (0-9)</label>
+        <label><input id="symbols" type="checkbox" checked /> Belgilar (!@#...)</label>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn" class="btn primary">Generate</button>
+        <button id="regenerateBtn" class="btn">Regenerate</button>
+        <button id="copyBtn" class="btn">Copy</button>
+        <button id="revealBtn" class="btn">Show</button>
+      </div>
+
+      <div class="output">
+        <input id="passwordOutput" readonly aria-label="Generated password" />
+        <div id="strength" class="strength">—</div>
+      </div>
+
+      <div class="note">
+        <small>Maslahat: har bir sayt uchun yagona parol ishlating. Parollar lokal kompyuteringizda faqat brauzer localStorage’da saqlanadi.</small>
+      </div>
+    </section>
+
+    <!-- Save list + analyzer -->
+    <section class="card">
+      <h2>Saqlangan parollar</h2>
+      <div id="savedList" class="saved-list">Hech qanaqa saqlangan parol yo‘q.</div>
+      <div class="saved-actions">
+        <button id="clearAllBtn" class="btn">Hammasini tozalash</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Parol tahlili</h2>
+      <div class="analyze-row">
+        <input id="analyzeInput" placeholder="Oʻz parolingizni kiriting..." />
+        <button id="analyzeBtn" class="btn">Tahlil qil</button>
+      </div>
+      <div id="analysisResult" class="analysis">—</div>
+    </section>
+
+    <footer class="footer">
+      <small>Created by <strong>Ruzibekov</strong></small>
+    </footer>
+  </main>
 
   <script src="script.js"></script>
 </body>
