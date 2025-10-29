@@ -1,27 +1,26 @@
-/* style.css — oddiy, zamonaviy va responsiv dizayn */
-/* CSS variables for theme */
 :root{
   --bg: #f6f9fc;
-  --card: #ffffff;
+  --card: #fff;
   --text: #0b1220;
   --muted: #6b7280;
-  --accent: linear-gradient(90deg,#6e9cff,#7ef0c1);
   --primary: #3b82f6;
   --success: #10b981;
   --danger: #ef4444;
-  --radius: 12px;
   --glass: rgba(255,255,255,0.6);
-  --shadow: 0 6px 20px rgba(12,18,28,0.08);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(2,6,23,0.08);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size: 15px;
 }
 
-[data-theme="dark"]{
-  --bg: #0b1220;
-  --card: #071021;
+/* FULL BLACK dark theme (truly black backgrounds) */
+[data-theme="dark"] {
+  --bg: #000000;
+  --card: #000000;
   --text: #e6eef8;
   --muted: #9fb3c8;
-  --glass: rgba(255,255,255,0.03);
-  --shadow: 0 8px 30px rgba(2,6,12,0.6);
+  --glass: rgba(255,255,255,0.02);
+  --shadow: 0 10px 30px rgba(0,0,0,0.9);
 }
 
 /* Layout */
@@ -29,129 +28,70 @@
 html,body{height:100%}
 body{
   margin:0;
-  background: linear-gradient(180deg,var(--bg), #eaf2ff 150px);
+  background:var(--bg);
   color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  padding:28px;
   display:flex;
   align-items:center;
   justify-content:center;
+  padding:28px;
+  transition: background .3s, color .3s;
 }
 
-/* Container */
-.container{
-  width:100%;
-  max-width:820px;
-}
+.wrap{width:100%;max-width:920px}
 
-/* Header */
-.header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:18px;
-}
-.header h1{
-  margin:0;
-  font-size:1.4rem;
-  letter-spacing:-0.2px;
-}
-.icon-btn{
-  background:transparent;
-  border:1px solid transparent;
-  padding:8px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:1rem;
-}
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.top h1{margin:0;font-size:1.4rem}
+.top-controls button{background:transparent;border:0;font-size:1.1rem;cursor:pointer;color:var(--text)}
 
-/* Card */
+/* card */
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  padding:20px;
+  padding:18px;
   box-shadow:var(--shadow);
-  backdrop-filter: blur(6px);
-  border:1px solid rgba(0,0,0,0.04);
+  border:1px solid rgba(255,255,255,0.03);
+  margin-bottom:14px;
 }
 
-/* Rows and inputs */
-.row{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  margin-bottom:12px;
-}
-.row.gap{
-  justify-content:flex-start;
-  flex-wrap:wrap;
-}
-label{font-size:0.95rem;color:var(--text)}
-input[type="range"]{width:100%}
-input[type="checkbox"]{transform:scale(1.05);margin-right:8px}
+/* rows */
+.row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 
-/* Checkboxes grid */
-.checkbox-grid{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:10px;
-  margin-bottom:12px;
+.btn{
+  padding:8px 12px;border-radius:10px;border:0;cursor:pointer;background:transparent;color:var(--text);
+  box-shadow:none;font-weight:600;
 }
+.btn.primary{background:var(--primary);color:#fff}
+.btn:hover{opacity:0.92}
 
-/* Buttons */
-button{
-  cursor:pointer;
-  border:0;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:600;
-}
-.primary{
-  background:var(--primary);
-  color:white;
-  box-shadow: 0 6px 18px rgba(59,130,246,0.18);
-}
-.secondary{
-  background:transparent;
-  border:1px solid rgba(0,0,0,0.06);
-  color:var(--text);
-}
-
-/* Output */
-.output-area{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  margin-top:10px;
-}
+/* output */
+.output{display:flex;gap:12px;align-items:center}
 #passwordOutput{
-  flex:1;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid rgba(0,0,0,0.06);
-  background:var(--glass);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
-  font-size:0.95rem;
+  flex:1;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);
+  background:var(--glass);font-family:ui-monospace, Menlo, Monaco, "Roboto Mono", monospace;
   color:var(--text);
 }
-.strength{
-  min-width:90px;
-  padding:8px 10px;
-  text-align:center;
-  border-radius:10px;
-  font-weight:700;
-  font-size:0.85rem;
-}
+.strength{min-width:110px;padding:10px;border-radius:10px;text-align:center;font-weight:700;color:#fff;background:transparent}
 
-/* Note & footer */
-.note{margin-top:12px;color:var(--muted)}
-.footer{margin-top:14px;text-align:center;color:var(--muted);font-size:0.85rem}
+/* saved list */
+.saved-list{max-height:180px;overflow:auto;padding:8px;border-radius:8px;border:1px dashed rgba(0,0,0,0.05);background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
+.saved-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;margin-bottom:6px;background:rgba(0,0,0,0.02)}
+.saved-item .meta{display:flex;gap:8px;align-items:center}
+.small-btn{padding:6px 8px;border-radius:8px;border:0;cursor:pointer}
 
-/* Responsive */
-@media (max-width:600px){
-  .checkbox-grid{grid-template-columns:1fr}
-  .row{flex-direction:column;align-items:stretch}
-  .output-area{flex-direction:column;align-items:stretch}
-  .icon-btn{font-size:18px}
+/* analyze */
+.analyze-row{display:flex;gap:8px;margin-bottom:10px}
+#analyzeInput{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:var(--glass);color:var(--text)}
+.analysis{padding:10px;border-radius:8px;background:rgba(0,0,0,0.02);min-height:48px;color:var(--muted)}
+
+/* footer */
+.footer{text-align:center;color:var(--muted);margin-top:6px;font-size:13px}
+
+/* responsive */
+@media (max-width:720px){
+  .grid{grid-template-columns:1fr}
+  .actions{justify-content:flex-start}
+  .saved-item{flex-direction:column;align-items:flex-start}
 }
