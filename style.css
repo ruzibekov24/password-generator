@@ -1,161 +1,136 @@
-/* style.css — Minimal, clean, modern design */
+/* style.css — Clean, minimal and modern styles for the enhanced Password Generator
+   Matches HTML/JS IDs and classes used in the project.
+*/
 
-:root {
-  --bg-light: #f5f5f5;
-  --text-light: #222;
-  --card-light: #fff;
-  --accent: #007bff;
-  --accent-green: #28a745;
-
-  --bg-dark: #121212;
-  --text-dark: #f1f1f1;
-  --card-dark: #1e1e1e;
+:root{
+  --bg-light: #f5f7fb;
+  --card-light: #ffffff;
+  --text-light: #0b1220;
+  --muted-light: #6b7280;
+  --accent: #0d6efd;         /* blue */
+  --accent-2: #0ea5a4;       /* teal */
+  --success: #10b981;
+  --danger: #ef4444;
+  --radius: 12px;
+  --shadow: 0 8px 30px rgba(12,18,28,0.08);
+  --glass: rgba(255,255,255,0.6);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size: 15px;
 }
 
-body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+/* Dark — full black look */
+body.dark{
+  --bg: #000000;
+  --card: #000000;
+  --text: #e6eef8;
+  --muted: #9fb3c8;
+  --glass: rgba(255,255,255,0.03);
+  --shadow: 0 10px 40px rgba(0,0,0,0.9);
+}
+
+/* Light defaults fallback */
+body{
+  margin:0;
+  padding:28px;
+  min-height:100vh;
   background: var(--bg-light);
   color: var(--text-light);
-  transition: background 0.4s, color 0.4s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: background .35s ease, color .35s ease;
 }
 
-.container {
+/* Container */
+.wrap, .container{ width:100%; max-width:920px; }
+
+.container{
+  width:340px;
   background: var(--card-light);
-  border-radius: 12px;
-  padding: 25px;
-  width: 340px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  text-align: center;
-  transition: background 0.4s, box-shadow 0.4s;
+  border-radius: var(--radius);
+  padding:20px;
+  box-shadow: var(--shadow);
+  transition: background .35s ease, box-shadow .35s ease;
 }
 
-h1 {
-  font-size: 1.5em;
-  margin-bottom: 20px;
+/* When dark class set on body, update container colors */
+body.dark .container{
+  background: var(--card);
+  box-shadow: var(--shadow);
 }
 
-.password-box {
-  display: flex;
-  margin-bottom: 10px;
+/* Header */
+.top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.top h1{ margin:0; font-size:1.25rem; letter-spacing:-0.2px; }
+.top-controls button{ background:transparent; border:0; cursor:pointer; font-size:1rem; }
+
+/* Card sections */
+.card{ background: transparent; }
+
+.row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:12px; }
+.actions{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+
+/* Password box */
+.password-box{ display:flex; gap:0; margin-bottom:10px; }
+#password{ flex:1; padding:12px; border-radius:10px 0 0 10px; border:1px solid rgba(2,6,23,0.06); background:var(--glass); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size:0.95rem; color:inherit; }
+#copyBtn{ padding:10px 12px; border-radius:0 10px 10px 0; border:0; cursor:pointer; background:var(--accent); color:#fff; font-weight:700; }
+#copyBtn:active{ transform:translateY(1px); }
+
+/* Settings */
+.settings{ text-align:left; }
+.settings label{ display:block; font-weight:600; margin-bottom:6px; font-size:0.95rem; }
+#length{ width:100%; }
+.checkbox-group, .checkboxes{ display:flex; flex-wrap:wrap; gap:8px; }
+.checkboxes label{ display:flex; align-items:center; gap:8px; font-weight:500; }
+
+/* Buttons */
+.btn{ padding:10px 12px; border-radius:10px; border:0; cursor:pointer; background:transparent; color:inherit; font-weight:700; }
+.btn.primary{ background:linear-gradient(90deg,var(--accent), var(--accent-2)); color:#fff; box-shadow: 0 8px 20px rgba(13,110,253,0.12); }
+.btn:hover{ opacity:0.95; }
+
+/* Output + strength */
+.output{ display:flex; gap:12px; align-items:center; margin-top:6px; }
+#passwordOutput{ flex:1; padding:12px; border-radius:10px; border:1px solid rgba(2,6,23,0.06); background:var(--glass); font-family: ui-monospace, monospace; }
+.strength{ min-width:120px; padding:8px 10px; border-radius:10px; background:transparent; text-align:center; font-weight:800; color:#fff; }
+
+/* Strength bar container used in earlier html */
+.strength-bar{ width:100%; height:10px; background:rgba(0,0,0,0.06); border-radius:8px; overflow:hidden; }
+.strength-bar .inner{ height:100%; width:0%; background:var(--success); transition: width 300ms ease, background 300ms ease; }
+
+/* Saved list */
+.saved-list{ max-height:220px; overflow:auto; padding:8px; border-radius:8px; border:1px dashed rgba(0,0,0,0.04); background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); }
+.saved-item{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px; border-radius:8px; background:rgba(0,0,0,0.02); margin-bottom:8px; }
+.saved-item .meta{ display:flex; align-items:center; gap:8px; }
+.small-btn{ padding:6px 8px; border-radius:8px; border:0; cursor:pointer; background:transparent; font-weight:700; }
+.small-btn:hover{ background:rgba(0,0,0,0.03); }
+
+/* Analyze */
+.analyze-row{ display:flex; gap:8px; margin-bottom:10px; }
+#analyzeInput{ flex:1; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:var(--glass); }
+.analysis{ padding:10px; border-radius:8px; background:rgba(0,0,0,0.02); color:var(--muted-light); min-height:48px; }
+
+/* Footer */
+.footer{ margin-top:12px; text-align:center; color:var(--muted-light); font-size:13px; }
+
+/* Responsive tweaks */
+@media (max-width: 720px){
+  .container{ width:92%; padding:16px; }
+  .grid{ grid-template-columns: 1fr; }
+  .saved-item{ flex-direction:column; align-items:flex-start; }
 }
 
-#password {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px 0 0 6px;
-  font-size: 15px;
-  outline: none;
+/* Dark overrides when body.dark present */
+body.dark{
+  background: #000; color: var(--text);
 }
+body.dark .container{ background: var(--card); }
+body.dark #copyBtn{ background: #0b5ed7; }
+body.dark .saved-item{ background: rgba(255,255,255,0.02); }
+body.dark .analysis{ background: rgba(255,255,255,0.02); color: var(--muted); }
 
-#copyBtn {
-  padding: 8px 12px;
-  border: none;
-  background: var(--accent);
-  color: white;
-  font-weight: bold;
-  border-radius: 0 6px 6px 0;
-  cursor: pointer;
-  transition: background 0.3s;
-}
+/* small accessibility focus styles */
+:focus{ outline: 3px solid rgba(13,110,253,0.12); outline-offset: 2px; }
 
-#copyBtn:hover {
-  background: #0056b3;
-}
-
-.settings {
-  text-align: left;
-  margin-top: 10px;
-}
-
-.settings label {
-  display: block;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-#length {
-  width: 100%;
-  cursor: pointer;
-}
-
-#generate {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  background: var(--accent-green);
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 15px;
-  font-size: 15px;
-  transition: background 0.3s;
-}
-
-#generate:hover {
-  background: #1d8b3d;
-}
-
-.strength {
-  margin-top: 15px;
-  text-align: left;
-}
-
-.strength-bar {
-  width: 100%;
-  height: 6px;
-  background: #ccc;
-  border-radius: 3px;
-  margin-top: 5px;
-  transition: background 0.3s, width 0.3s;
-}
-
-#themeToggle {
-  margin-top: 18px;
-  background: #222;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-#themeToggle:hover {
-  background: #000;
-}
-
-/* Dark mode */
-body.dark {
-  background: var(--bg-dark);
-  color: var(--text-dark);
-}
-
-body.dark .container {
-  background: var(--card-dark);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
-}
-
-body.dark #password {
-  background: #222;
-  border: 1px solid #333;
-  color: white;
-}
-
-body.dark #copyBtn {
-  background: #0d6efd;
-}
-
-body.dark #generate {
-  background: #198754;
-}
-
-body.dark #themeToggle {
-  background: #444;
-}
+/* ensure strength inner bar exists visually */
+.strength-bar .inner{ box-shadow: inset 0 -2px 6px rgba(0,0,0,0.08); }
