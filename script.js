@@ -1,334 +1,289 @@
-/* script.js — to'liq funksiya: generate, regenerate, strength (juda kuchli), localStorage save, analyze */
+/* script.js — Full functionality: generate, regenerate, strength, localStorage save, analyze, theme persistence */
 
-/* Character sets */
+// Character sets
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const LOWER = "abcdefghijklmnopqrstuvwxyz";
 const NUMS = "0123456789";
 const SYMBOLS = "!@#$%^&*()_+{}[]<>?,./~`-=";
 
-/* Helpers */
-function randInt(max) {
-  const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return arr[0] % max;
+// Utils
+function randInt(max){
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return a[0] % max;
 }
-function randomCharFrom(s) { return s[randInt(s.length)]; }
-function shuffle(a){
-  for (let i=a.length-1;i>0;i--){
-    const j=randInt(i+1);
-    [a[i],a[j]]=[a[j],a[i]];
+function randomCharFrom(s){ return s[randInt(s.length)]; }
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = randInt(i+1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
-/* Elements */
-const lengthEl = document.getElementById("length");
-const lengthValueEl = document.getElementById("lengthValue");
-const upperEl = document.getElementById("upper");
-const lowerEl = document.getElementById("lower");
-const numbersEl = document.getElementById("numbers");
-const symbolsEl = document.getElementById("symbols");
+// DOM refs (matching current HTML structure)
+const lengthEl = document.getElementById('length');
+const lengthValue = document.getElementById('lengthValue');
+const lowerEl = document.getElementById('lowercase');
+const upperEl = document.getElementById('uppercase');
+const numbersEl = document.getElementById('numbers');
+const symbolsEl = document.getElementById('symbols');
 
-const generateBtn = document.getElementById("generateBtn");
-const regenerateBtn = document.getElementById("regenerateBtn");
-const copyBtn = document.getElementById("copyBtn");
-const revealBtn = document.getElementById("revealBtn");
-const outputEl = document.getElementById("passwordOutput");
-const strengthEl = document.getElementById("strength");
+const generateBtn = document.getElementById('generate');
+const copyBtn = document.getElementById('copyBtn');
+const passwordInput = document.getElementById('password');
+const strengthLabel = document.getElementById('strengthLabel');
+const strengthBar = document.getElementById('strengthBar');
+const themeToggle = document.getElementById('themeToggle');
 
-const savedListEl = document.getElementById("savedList");
-const clearAllBtn = document.getElementById("clearAllBtn");
+// For saved list and analyzer (if present in page version)
+const savedListEl = document.getElementById('savedList');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const regenerateBtn = document.getElementById('regenerateBtn');
+const revealBtn = document.getElementById('revealBtn');
+const analyzeInput = document.getElementById('analyzeInput');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const analysisResult = document.getElementById('analysisResult');
 
-const analyzeInput = document.getElementById("analyzeInput");
-const analyzeBtn = document.getElementById("analyzeBtn");
-const analysisResult = document.getElementById("analysisResult");
-
-const themeToggle = document.getElementById("themeToggle");
-
-/* State */
-let lastOptions = null; // for regenerate
+// State
+let lastOptions = null;
 let savedPasswords = loadSaved();
 
-/* Initial */
-lengthValueEl.textContent = lengthEl.value;
-lengthEl.addEventListener("input", ()=> lengthValueEl.textContent = lengthEl.value);
-
-/* Theme: full black in dark mode */
-themeToggle.addEventListener("click", ()=>{
-  const html = document.documentElement;
-  const current = html.getAttribute("data-theme") || "light";
-  const next = current === "light" ? "dark" : "light";
-  html.setAttribute("data-theme", next);
-  themeToggle.textContent = next === "dark" ? "☀️" : "🌙";
-  themeToggle.setAttribute("aria-pressed", String(next==="dark"));
-});
-
-/* Generate */
-generateBtn.addEventListener("click", ()=>{
-  const opts = getOptions();
-  const pwd = generatePassword(opts.length, opts);
-  outputEl.value = pwd;
-  evaluateStrength(pwd);
-  lastOptions = opts;
-  saveGeneratedPrompt(pwd); // save to localStorage list automatically
-  renderSaved();
-});
-
-/* Regenerate (same options) */
-regenerateBtn.addEventListener("click", ()=>{
-  if (!lastOptions) { flash(regenerateBtn, "No settings"); return; }
-  const pwd = generatePassword(lastOptions.length, lastOptions);
-  outputEl.value = pwd;
-  evaluateStrength(pwd);
-  saveGeneratedPrompt(pwd);
-  renderSaved();
-});
-
-/* Copy */
-copyBtn.addEventListener("click", async ()=>{
-  const txt = outputEl.value;
-  if (!txt) { flash(copyBtn,"No password"); return; }
-  try {
-    await navigator.clipboard.writeText(txt);
-    flash(copyBtn,"Copied");
-  } catch (e) {
-    flash(copyBtn,"Fail");
-  }
-});
-
-/* Reveal toggle (simple) */
-revealBtn.addEventListener("click", ()=>{
-  const pressed = revealBtn.getAttribute("aria-pressed")==="true";
-  revealBtn.setAttribute("aria-pressed", String(!pressed));
-  revealBtn.textContent = pressed ? "Show" : "Hide";
-  // keep as text always for easier copy; if you want masking use type=password (but copying sometimes blocked)
-  if (!pressed) outputEl.type = "text";
-  else outputEl.type = "text";
-});
-
-/* Analyze input */
-analyzeBtn.addEventListener("click", ()=>{
-  const p = analyzeInput.value.trim();
-  if (!p) { analysisResult.textContent = "Parol kiritilmagan."; return; }
-  const res = analyzePassword(p);
-  analysisResult.innerHTML = res.summary + "<br><small>" + res.details + "</small>";
-});
-
-/* Saved list actions */
-clearAllBtn.addEventListener("click", ()=>{
-  if (!confirm("Hammasini o‘chirilsinmi?")) return;
-  savedPasswords = [];
-  persistSaved();
-  renderSaved();
-});
-
-/* LocalStorage helpers */
-function loadSaved(){
-  try {
-    const raw = localStorage.getItem("saved_passwords_v1");
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch (e) {
-    return [];
-  }
-}
-function persistSaved(){
-  localStorage.setItem("saved_passwords_v1", JSON.stringify(savedPasswords));
-}
-/* Save generated automatically (keep max 50, unique near top) */
-function saveGeneratedPrompt(pwd){
-  if (!pwd) return;
-  // Avoid exact duplicates in a row
-  if (savedPasswords[0] && savedPasswords[0].pwd === pwd) return;
-  savedPasswords.unshift({pwd, at: Date.now()});
-  if (savedPasswords.length > 50) savedPasswords.length = 50;
-  persistSaved();
+// Initialize UI
+if(lengthEl && lengthValue) {
+  lengthValue.textContent = lengthEl.value;
+  lengthEl.addEventListener('input', ()=> lengthValue.textContent = lengthEl.value);
 }
 
-/* Render saved list */
-function renderSaved(){
-  if (savedPasswords.length===0){
-    savedListEl.textContent = "Hech qanaqa saqlangan parol yo‘q.";
-    return;
-  }
-  savedListEl.innerHTML = "";
-  savedPasswords.forEach((item, idx)=>{
-    const div = document.createElement("div");
-    div.className = "saved-item";
+// Theme persistence (uses data-theme on body or class 'dark')
+(function initTheme(){
+  const prefer = localStorage.getItem('pg_theme');
+  if(prefer === 'dark') document.body.classList.add('dark');
+  else document.body.classList.remove('dark');
+  updateThemeButton();
+})();
 
-    const meta = document.createElement("div");
-    meta.className = "meta";
-
-    const text = document.createElement("div");
-    text.textContent = item.pwd;
-    text.style.fontFamily = "ui-monospace, Menlo, Monaco, 'Roboto Mono', monospace";
-
-    const time = document.createElement("small");
-    const d = new Date(item.at);
-    time.textContent = d.toLocaleString();
-    time.style.marginLeft = "8px";
-    time.style.color = "var(--muted)";
-
-    meta.appendChild(text);
-    meta.appendChild(time);
-
-    const actions = document.createElement("div");
-    actions.style.display = "flex";
-    actions.style.gap = "6px";
-
-    const copy = document.createElement("button");
-    copy.className = "small-btn";
-    copy.textContent = "Copy";
-    copy.onclick = async ()=>{
-      try { await navigator.clipboard.writeText(item.pwd); flash(copy,"Copied"); }
-      catch { flash(copy,"Fail"); }
-    };
-
-    const use = document.createElement("button");
-    use.className = "small-btn";
-    use.textContent = "Use";
-    use.onclick = ()=>{
-      outputEl.value = item.pwd;
-      evaluateStrength(item.pwd);
-    };
-
-    const del = document.createElement("button");
-    del.className = "small-btn";
-    del.textContent = "Del";
-    del.onclick = ()=>{
-      if (!confirm("O‘chirilsinmi?")) return;
-      savedPasswords.splice(idx,1);
-      persistSaved();
-      renderSaved();
-    };
-
-    actions.appendChild(copy);
-    actions.appendChild(use);
-    actions.appendChild(del);
-
-    div.appendChild(meta);
-    div.appendChild(actions);
-    savedListEl.appendChild(div);
+if(themeToggle){
+  themeToggle.addEventListener('click', ()=>{
+    document.body.classList.toggle('dark');
+    localStorage.setItem('pg_theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    updateThemeButton();
   });
 }
+function updateThemeButton(){
+  if(!themeToggle) return;
+  themeToggle.textContent = document.body.classList.contains('dark') ? '☀️ Light' : '🌙 Dark Mode';
+}
 
-/* Options getter */
+// Generation logic
 function getOptions(){
-  const length = parseInt(lengthEl.value,10);
   return {
-    length,
-    upper: upperEl.checked,
-    lower: lowerEl.checked,
-    numbers: numbersEl.checked,
-    symbols: symbolsEl.checked
+    length: lengthEl ? parseInt(lengthEl.value,10) : 12,
+    lower: lowerEl ? lowerEl.checked : true,
+    upper: upperEl ? upperEl.checked : true,
+    numbers: numbersEl ? numbersEl.checked : true,
+    symbols: symbolsEl ? symbolsEl.checked : false
   };
 }
 
-/* Generate password (ensures at least one of each chosen type) */
-function generatePassword(length, {upper,lower,numbers,symbols}){
-  let pool = "";
+function generatePassword(length, {lower,upper,numbers,symbols}){
+  let pool = '';
   const required = [];
-  if (upper){ pool += UPPER; required.push(randomCharFrom(UPPER)); }
-  if (lower){ pool += LOWER; required.push(randomCharFrom(LOWER)); }
-  if (numbers){ pool += NUMS; required.push(randomCharFrom(NUMS)); }
-  if (symbols){ pool += SYMBOLS; required.push(randomCharFrom(SYMBOLS)); }
-  if (!pool){
-    alert("Iltimos — parol tarkibini tanlang.");
-    return "";
+  if(upper){ pool += UPPER; required.push(randomCharFrom(UPPER)); }
+  if(lower){ pool += LOWER; required.push(randomCharFrom(LOWER)); }
+  if(numbers){ pool += NUMS; required.push(randomCharFrom(NUMS)); }
+  if(symbols){ pool += SYMBOLS; required.push(randomCharFrom(SYMBOLS)); }
+  if(pool.length === 0) {
+    alert('Iltimos, kamida bitta belgilar turini tanlang.');
+    return '';
   }
   const remaining = Math.max(0, length - required.length);
   const chars = [];
-  for (let i=0;i<remaining;i++) chars.push(randomCharFrom(pool));
+  for(let i=0;i<remaining;i++) chars.push(randomCharFrom(pool));
   const all = required.concat(chars);
   shuffle(all);
-  return all.slice(0, length).join("");
+  return all.slice(0, length).join('');
 }
 
-/* Strength evaluation (AI-like label including 'Juda kuchli') */
-function evaluateStrength(pwd){
-  if (!pwd){ strengthEl.textContent = "—"; strengthEl.style.background="transparent"; return; }
-  // estimate entropy: log2(poolSize) * length but adjust for repeated simple patterns
-  const poolSize = (/[A-Z]/.test(pwd) ? 26 : 0) + (/[a-z]/.test(pwd) ? 26 : 0) + (/[0-9]/.test(pwd) ? 10 : 0) + (/[^A-Za-z0-9]/.test(pwd) ? 32 : 0);
-  const entropyPerChar = Math.log2(Math.max(2, poolSize));
-  let entropy = Math.round(entropyPerChar * pwd.length);
-
-  // penalty for common patterns (simple checks)
-  const lowers = pwd.toLowerCase();
-  const commonWords = ["password","1234","qwerty","admin","letmein"];
-  for (const w of commonWords) if (lowers.includes(w)) entropy = Math.max(1, entropy - 20);
-
-  // more penalty for repeated characters
-  if (/^(.)\1+$/.test(pwd)) entropy = Math.max(1, entropy - 30);
-
-  // Map entropy to label
-  let label = "Zaif";
-  let color = "var(--danger)";
-  if (entropy < 40) { label = "Zaif"; color = "var(--danger)"; }
-  else if (entropy < 60) { label = "O'rta"; color = "orange"; }
-  else if (entropy < 90) { label = "Kuchli"; color = "var(--success)"; }
-  else { label = "Juda kuchli"; color = "#006400"; } // dark green for extra strong
-
-  // Show label + bits
-  strengthEl.textContent = `${label} · ~${entropy} bit`;
-  strengthEl.style.background = color;
-  strengthEl.style.color = "#fff";
+// Strength evaluation (entropy-based with pattern penalties)
+function estimateEntropy(pwd){
+  if(!pwd) return 0;
+  const pool = (/[A-Z]/.test(pwd) ? 26 : 0) + (/[a-z]/.test(pwd) ? 26 : 0) + (/[0-9]/.test(pwd) ? 10 : 0) + (/[^A-Za-z0-9]/.test(pwd) ? 32 : 0);
+  const entPerChar = Math.log2(Math.max(2,pool));
+  let entropy = entPerChar * pwd.length;
+  const low = pwd.toLowerCase();
+  const common = ['password','1234','qwerty','admin','letmein','abcdef'];
+  for(const c of common) if(low.includes(c)) entropy -= 20;
+  if(/^(.)\1+$/.test(pwd)) entropy -= 30; // all same char
+  if(/(\d)\1{2,}/.test(pwd)) entropy -= 8; // repeated digits
+  return Math.max(0, Math.round(entropy));
 }
 
-/* Analyze password for brute-force time estimate */
+function updateStrengthUI(pwd){
+  if(!strengthLabel || !strengthBar) return;
+  const e = estimateEntropy(pwd);
+  let label = 'Zaif';
+  let pct = 10;
+  let color = '#ef4444';
+  if(e < 40){ label = 'Zaif'; pct = 20; color = '#ef4444'; }
+  else if(e < 60){ label = "O'rta"; pct = 50; color = '#f59e0b'; }
+  else if(e < 90){ label = 'Kuchli'; pct = 75; color = '#10b981'; }
+  else { label = 'Juda kuchli'; pct = 100; color = '#006400'; }
+  strengthLabel.textContent = `${label} · ~${e} bit`;
+  strengthBar.style.background = '#e6e6e6';
+  strengthBar.style.width = '100%';
+  // create inner colored bar
+  if(!strengthBar.querySelector('.inner')){
+    const inner = document.createElement('div');
+    inner.className = 'inner';
+    inner.style.height = '100%';
+    inner.style.borderRadius = '3px';
+    inner.style.transition = 'width 300ms, background 300ms';
+    strengthBar.appendChild(inner);
+  }
+  const inner = strengthBar.querySelector('.inner');
+  inner.style.width = pct + '%';
+  inner.style.background = color;
+}
+
+// Saving to localStorage
+function loadSaved(){
+  try{
+    const raw = localStorage.getItem('pg_saved_v2');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function persistSaved(){
+  localStorage.setItem('pg_saved_v2', JSON.stringify(savedPasswords));
+}
+
+function savePassword(pwd){
+  if(!pwd) return;
+  if(savedPasswords[0] && savedPasswords[0].pwd === pwd) return;
+  savedPasswords.unshift({pwd, at: Date.now()});
+  if(savedPasswords.length > 100) savedPasswords.length = 100;
+  persistSaved();
+}
+
+function renderSaved(){
+  if(!savedListEl) return;
+  savedListEl.innerHTML = '';
+  if(savedPasswords.length === 0){ savedListEl.textContent = 'Hech qanaqa saqlangan parol yo\'q.'; return; }
+  savedPasswords.forEach((it, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'saved-item';
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const t = document.createElement('div');
+    t.textContent = it.pwd;
+    t.style.fontFamily = 'ui-monospace, Menlo, Monaco, "Roboto Mono", monospace';
+    const time = document.createElement('small');
+    time.textContent = new Date(it.at).toLocaleString();
+    time.style.marginLeft = '10px';
+    time.style.color = 'var(--muted)';
+    meta.appendChild(t); meta.appendChild(time);
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex'; actions.style.gap='6px';
+    const cbtn = document.createElement('button'); cbtn.className='small-btn'; cbtn.textContent='Copy';
+    cbtn.onclick = async ()=>{ try{ await navigator.clipboard.writeText(it.pwd); flash(cbtn,'Copied'); }catch{ flash(cbtn,'Fail'); }};
+    const use = document.createElement('button'); use.className='small-btn'; use.textContent='Use'; use.onclick = ()=>{ passwordInput.value = it.pwd; updateStrengthUI(it.pwd); };
+    const del = document.createElement('button'); del.className='small-btn'; del.textContent='Del'; del.onclick = ()=>{ if(!confirm('O\'chirilsinmi?')) return; savedPasswords.splice(idx,1); persistSaved(); renderSaved(); };
+    actions.appendChild(cbtn); actions.appendChild(use); actions.appendChild(del);
+
+    row.appendChild(meta);
+    row.appendChild(actions);
+    savedListEl.appendChild(row);
+  });
+}
+
+// Analyze (brute-force time estimate)
 function analyzePassword(pwd){
   const pool = (/[A-Z]/.test(pwd) ? 26 : 0) + (/[a-z]/.test(pwd) ? 26 : 0) + (/[0-9]/.test(pwd) ? 10 : 0) + (/[^A-Za-z0-9]/.test(pwd) ? 32 : 0);
-  const entropyPerChar = Math.log2(Math.max(2,pool));
-  const entropy = entropyPerChar * pwd.length;
-
-  // assume attacker 1e10 guesses/sec (10 billion/s) — conservative high-power GPU cluster
-  const guessesPerSecond = 1e10;
-  const possible = Math.pow(2, entropy); // large — may be Infinity for huge entropy, handle via log
-  // time in seconds using log math: time = 2^entropy / guessesPerSecond
-  // compute using logs to avoid overflow:
-  const log10_time_sec = (entropy * Math.LOG10E * Math.LN2) - Math.log10(guessesPerSecond); // but simpler compute: log10(2^entropy) = entropy*log10(2)
-  const log10_time = entropy * Math.LOG10E * Math.LN2; // this is WRONG approach — simpler: use entropy*log10(2)
-  // Fix: log10(2^entropy) = entropy * log10(2)
-  const log10_2 = Math.LOG10E * Math.LN2; // equals log10(2)
-  const log10_seconds = entropy * log10_2 - Math.log10(guessesPerSecond);
-  // convert to human-readable
-  const seconds = Math.pow(10, log10_seconds); // may underflow/overflow but we'll format via magnitudes
-  // create friendly string: prefer years
-  const log10_secs = log10_seconds;
+  const entropy = Math.log2(Math.max(2, pool)) * pwd.length;
+  // guesses per second assumption
+  const guessesPerSec = 1e10; // 10 billion
+  const log10_seconds = entropy * Math.log10(2) - Math.log10(guessesPerSec);
+  // convert
+  if(!isFinite(log10_seconds)) return {summary: 'Juda uzoq', details: `Entropiya: ${Math.round(entropy)} bit`};
+  const years = Math.pow(10, log10_seconds) / (60*60*24*365);
   let human;
-  if (isFinite(log10_secs)) {
-    const years = Math.pow(10, log10_secs) / (60*60*24*365);
-    if (years < 1) {
-      const secs = Math.pow(10, log10_seconds);
-      human = secs < 1 ? "<1 s" : `${Math.round(secs)} s`;
-    } else if (years < 1e3) {
-      human = `${Math.round(years)} yil`;
-    } else {
-      // show in scientific
-      const mag = Math.floor(Math.log10(years));
-      human = `~10^${mag} yil`;
-    }
+  if(years < 1) {
+    const secs = Math.pow(10, log10_seconds);
+    human = secs < 1 ? '<1 s' : `${Math.round(secs)} s`;
+  } else if(years < 1000) {
+    human = `${Math.round(years)} yil`;
   } else {
-    human = "Juda uzoq (10^+ yil)";
+    const mag = Math.floor(Math.log10(years));
+    human = `~10^${mag} yil`;
   }
-
-  // Summary and details
-  const summary = `Taxminiy buzish vaqti: <strong>${human}</strong>`;
-  const details = `Entropiya taxminan ${Math.round(entropy)} bit. (Taxmin: ${pool} belgidan, ${pwd.length} uzunlik) — 10ⁱ taxminiy yadro hisoblash tezligi ob'yektiv sharoitda.`;
-
-  return {summary, details};
+  return {summary: `Taxminiy buzish vaqti: <strong>${human}</strong>`, details: `Entropiya taxminan ${Math.round(entropy)} bit (${pool} belgilar, uzunlik ${pwd.length})`};
 }
 
-/* Flash small text on button */
-function flash(btn, text){
-  const orig = btn.textContent;
-  btn.textContent = text;
-  setTimeout(()=> btn.textContent = orig, 900);
+// Flash helper
+function flash(el, txt){
+  const orig = el.textContent;
+  el.textContent = txt;
+  setTimeout(()=> el.textContent = orig, 1000);
 }
 
-/* Persist on unload */
-window.addEventListener("beforeunload", persistSaved);
+// Event wiring (only if elements exist)
+if(generateBtn){
+  generateBtn.addEventListener('click', ()=>{
+    const opts = getOptions();
+    const pwd = generatePassword(opts.length, opts);
+    passwordInput.value = pwd;
+    updateStrengthUI(pwd);
+    lastOptions = opts;
+    savePassword(pwd);
+    renderSaved();
+  });
+}
+if(typeof regenerateBtn !== 'undefined' && regenerateBtn){
+  regenerateBtn.addEventListener('click', ()=>{
+    if(!lastOptions){ flash(regenerateBtn,'No settings'); return; }
+    const pwd = generatePassword(lastOptions.length, lastOptions);
+    passwordInput.value = pwd;
+    updateStrengthUI(pwd);
+    savePassword(pwd);
+    renderSaved();
+  });
+}
+if(copyBtn){
+  copyBtn.addEventListener('click', async ()=>{
+    const txt = passwordInput.value;
+    if(!txt){ flash(copyBtn,'No password'); return; }
+    try{ await navigator.clipboard.writeText(txt); flash(copyBtn,'Copied'); }catch{ flash(copyBtn,'Fail'); }
+  });
+}
+if(typeof revealBtn !== 'undefined' && revealBtn){
+  revealBtn.addEventListener('click', ()=>{
+    const pressed = revealBtn.getAttribute('aria-pressed') === 'true';
+    revealBtn.setAttribute('aria-pressed', String(!pressed));
+    revealBtn.textContent = pressed ? 'Show' : 'Hide';
+    // keep input as text for easy copy
+  });
+}
+if(typeof analyzeBtn !== 'undefined' && analyzeBtn){
+  analyzeBtn.addEventListener('click', ()=>{
+    const p = analyzeInput.value.trim();
+    if(!p){ analysisResult.textContent = 'Parol kiritilmagan.'; return; }
+    const res = analyzePassword(p);
+    analysisResult.innerHTML = res.summary + '<br><small>' + res.details + '</small>';
+  });
+}
+if(typeof clearAllBtn !== 'undefined' && clearAllBtn){
+  clearAllBtn.addEventListener('click', ()=>{
+    if(!confirm('Hammasini o\'chirilsinmi?')) return;
+    savedPasswords = [];
+    persistSaved();
+    renderSaved();
+  });
+}
 
-/* render on load */
+// On load
 renderSaved();
+// auto-generate first password
+if(generateBtn) generateBtn.click();
 
-/* Useful: generate first password */
-document.getElementById("generateBtn").click();
+// persist before unload
+window.addEventListener('beforeunload', persistSaved);
